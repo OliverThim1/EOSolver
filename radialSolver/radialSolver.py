@@ -5,8 +5,24 @@ import scipy as sp
 import matplotlib as plt
 
 
-def _NumerovSolve(E,R,l,pot):
-    # Solve the radial schöringer equation using Numerovs method.
+def _NumerovSolve(g,s,R,h,start1=0,start2=1e-4):
+    """ Solves differential equation of the form y'' = -g(x)y + s(x)
+        for every point in R using numerovs method.
+    """
+    # Solves backwards so ew flip R.
+    R0 = R[::-1]
+
+    y=[start1,start2]
+
+    for i in range(1,len(R)-1):
+        xn = R[i]
+        xnm = R[i-1]
+        xnp = R[i+1]
+
+        x = (  2.*y[i]*(1-((5/12)*(h**2))*g(xn)) - y[i-1]*(1+((h**2)/12)*g(xnm)) + ((h**2)/12)*(s(xnp) + 10*s(xn) + s(xnm))  ) / (1 + ((h**2)/12)*g(xnp))
+        y.append(x)
+
+    return y[::-1]
 
 def _SolveSchroedinger(E,R,l,pot):
     """ Integrates Schroedinger equation given a energy E, and angular momentum

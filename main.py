@@ -27,4 +27,16 @@ def pot(r):
     return pot_coulomb(r,Z)+pot_step(r)
 
 # Computes eigenstates requested by lmax and nmax
-bound_states = bs.FindBoundStates(R,lmax,nmax,pot)
+#bound_states = bs.FindBoundStates(R,lmax,nmax,pot)
+
+R = np.linspace(0,10,1000)
+
+def g(x):
+    return 1
+def s(x):
+    return 0
+y = rs._NumerovSolve(g,s,np.linspace(0,10,1000),0.01)
+
+
+plt.plot(R, y)
+plt.show()
