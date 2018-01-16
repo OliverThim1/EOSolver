@@ -35,6 +35,7 @@ def g(x):
     return 1
 def s(x):
     return 0
+
 y = rs._NumerovSolve(g,s,np.linspace(0,10,1000),0.01)
 
 
