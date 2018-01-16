@@ -65,15 +65,35 @@ def FindBoundStates(R,lmax,nmax,pot,MaxSteps=1000,Etol=1e-17):
     It first brackets roots of function Shoot using a logarithmic mesh dense at zero.
     It later refinds the roots by optimize.brentq method.
     """
+    Eb=[]
+     for l in range(lmax+1): # For each momentum eigenvalue l
+       nfound=0
+       while nfound < nmax-l: # Find nmax bound states
+           E_coul = -1/(2.*(nfound+1+l)**2) #Why? Pure coulomb energy
+           E0=E_coul
+           try: dE = E_coul - 0.99*Eb0
+           except: dE ? 3*np.abs(E_coul)
+           i=0
+           uo = _Shoot(E0, R, l, pot)
+           un = _Shoot(E0-dE, R, l, pot)
+           while un*uo > 0 and i < MaxSteps:
+               i+=1
+               E0-=dE
+               un = _Shoot(E0-dE, R, l, pot)
 
-    # For each momentum eigenvalue l
+            Eb0 = optimize.brentq(_Shoot, E0-dE, E0, args=(R, l, pot), xtol=Etol)
+           Eb.append([l,Eb0])
+           nfound+=1
+    return Eb
 
-        # Find nmax bound states
+
+
 
         # Find a higher and lower boundry for E.
 
         # Find E so u(r=0) = 0.
 
         # Print result
+
 
     # Return the bound states
