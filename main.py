@@ -31,6 +31,8 @@ def pot(r):
 
 R = np.linspace(0,10,1000)
 
+
+''' Test av Numerov Solve.
 def g(x):
     return 1
 def s(x):
@@ -38,6 +40,9 @@ def s(x):
 
 y = rs._NumerovSolve(g,s,np.linspace(0,10,1000),0.01)
 
-
 plt.plot(R, y)
 plt.show()
+'''
+
+bound_states = rs.FindBoundStates(R,lmax,nmax,pot)
+

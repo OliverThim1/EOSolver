@@ -1,7 +1,9 @@
 # This program is based on a program by Christian Forssen.
 
 import numpy as np
-import scipy as sp
+import pylab as p
+from scipy import *
+from scipy import optimize
 import matplotlib as plt
 
 
@@ -33,6 +35,9 @@ def _NumerovSolve(g,s,R,h,start1=0,start2=1e-4):
     u = [x / norm for x in y] # Normalizes.
     return u
 
+
+
+
 def _SolveSchroedinger(E,R,l,pot):
     """ Integrates Schroedinger equation given a energy E, and angular momentum
     eigenvalue l, and potential pot(r).
@@ -45,7 +50,22 @@ def _SolveSchroedinger(E,R,l,pot):
     TODO: Find functions g(x), s(x), so that we can solve the diff.equation with _NumerovSolve.
     """
 
+    """ After the variable change u(r)/r = R(r) we have a differential equation of the form
 
+    If we consider m/ \bar(h)^2 = 1 we get
+
+    u'' = (2*(V-E) + l(l+1)/r^2)*u
+    _NumerovSolve wants a differential equation of the form y'' = -g(x)y + s(x), so we construct g(x), s(x).
+    """
+    h = 0.01 # Steglängd
+
+    def g(r):
+        return (2 * (E - pot(r)) - l*(l + 1) / r ** 2)
+
+    def s(r):
+        return 0
+
+    return _NumerovSolve(g, s, R, h)
 
 
 def _Shoot(E, R, l, pot):
@@ -66,24 +86,26 @@ def FindBoundStates(R,lmax,nmax,pot,MaxSteps=1000,Etol=1e-17):
     It later refinds the roots by optimize.brentq method.
     """
     Eb=[]
-     for l in range(lmax+1): # For each momentum eigenvalue l
-       nfound=0
-       while nfound < nmax-l: # Find nmax bound states
-           E_coul = -1/(2.*(nfound+1+l)**2) #Why? Pure coulomb energy
-           E0=E_coul
-           try: dE = E_coul - 0.99*Eb0
-           except: dE ? 3*np.abs(E_coul)
-           i=0
-           uo = _Shoot(E0, R, l, pot)
-           un = _Shoot(E0-dE, R, l, pot)
-           while un*uo > 0 and i < MaxSteps:
-               i+=1
-               E0-=dE
-               un = _Shoot(E0-dE, R, l, pot)
+    for l in range(lmax+1): # For each momentum eigenvalue l
+        nfound=0
+        while nfound < nmax-l: # Find nmax bound states
+            E_coul = -1/(2.*(nfound+1+l)**2) #Why? Pure coulomb energy
+            E0=E_coul
+            try: dE = E_coul - 0.99*Eb0
+            except: dE = 3*np.abs(E_coul)
+            i=0
+            uo = _Shoot(E0, R, l, pot)
+            un = _Shoot(E0-dE, R, l, pot)
+            while un*uo > 0 and i < MaxSteps:
+                i+=1
+                E0-=dE
+                un = _Shoot(E0-dE, R, l, pot)
 
             Eb0 = optimize.brentq(_Shoot, E0-dE, E0, args=(R, l, pot), xtol=Etol)
-           Eb.append([l,Eb0])
-           nfound+=1
+            Eb.append([l,Eb0])
+            print ('Bound state # %2i (l=%2i): E=%12.9f (Pure Coulomb: E_c=%12.9f; ratio=%6.4f)' \
+            % (nfound, l, Eb0, E_coul, Eb0 / E_coul))
+            nfound+=1
     return Eb
 
 
