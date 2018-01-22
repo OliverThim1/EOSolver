@@ -12,10 +12,11 @@ def _NumerovSolve(g,s,x,start1=0,start2=1e-4):
     """ Solves differential equation of the form y'' = -g(x)y + s(x)
         for every point in R using numerovs method.
         <Start2> only scales the solution.
+        Needs linearly spaced h
 
         TODO: Improve array system to numpy.array.
     """
-    # Solves backwards so flip R.
+    # Solves backwards so flip x.
     x0 = x[::-1]
     y=[start1,start2] # Function value array start from the rear.
 
@@ -24,7 +25,7 @@ def _NumerovSolve(g,s,x,start1=0,start2=1e-4):
         xnm = x0[i-1]
         xnp = x0[i+1]
 
-        h = np.abs(xnp-xn)
+        h = np.abs(xnp-xn)  #TODO: can be moved outside loop
         #h = 0.01
 
         # Numerovs method.
@@ -34,7 +35,7 @@ def _NumerovSolve(g,s,x,start1=0,start2=1e-4):
     # Take the norm of the y-vector; divide with it's maximum.
     norm = max(y[:int(len(x) * 0.9)])
 
-    y = y[::-1] # Flips back.
+    y = y[::-1]  # Flips back.
 
     y_norm = [z / norm for z in y] # Normalizes.
     return y_norm
@@ -47,8 +48,6 @@ def _SolveSchroedinger(E,R,l,pot):
     We use initial condition at infinity : u(infinity)=0, and u'(infinity)=small.
     In order that solution is of the order of unity, we normalize it to (roughly) the peak
     value of the function.
-
-    TODO: Find functions g(x), s(x), so that we can solve the diff.equation with _NumerovSolve.
     """
 
     """ After the variable change u(r)/r = R(r) we have a differential equation of the form
@@ -66,14 +65,14 @@ def _SolveSchroedinger(E,R,l,pot):
     def s_linear(x):
         return 0
 
-    # Functions for logaritmic R.
+    # Functions for logarithmic R using u=sqrt(r)*y.
     def g_log(x):
-        return -(1/4 - np.exp(2*x)*g_linear(np.exp(x)))
+        return -(1/4 - np.exp(2*x)*g_linear(np.exp(x)))  #the 1/4 and r^2*g comes from the variable change u=sqrt(r)*y
 
     def s_log(x):
         return 0
 
-    return _NumerovSolve(g_log, s_log, np.log(R))
+    return _NumerovSolve(g_log, s_log, np.log(R)) #gives NumerovSolve an evenly spaced vector log(R)
 
 
 def _Shoot(E, R, l, pot):
@@ -84,8 +83,7 @@ def _Shoot(E, R, l, pot):
 
     u = np.multiply((_SolveSchroedinger(E, R, l, pot)),np.sqrt(R))
 
-    # Vi vill ha värdet i r=0, därför interpolerar vi sista biten i.o.m att
-    # R[0] inte riktigt.
+    # Wants value in r=0, therefore interpolates last bit
     x = u[0] + (u[1] - u[0]) * (0.0 - R[0]) / (R[1] - R[0])
 
     return x
