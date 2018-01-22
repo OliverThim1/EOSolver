@@ -17,10 +17,10 @@ def pot_coulomb(r,Z=1):
 def pot_gauss(r,V0=1,c=1):
     return -V0*np.exp(-r**2/(2*c**2))
 
-#R = np.logspace(-4,2.5,5000) # Logarithmic mesh for our integration: [10^-7,...10^2.5]
-R = np.linspace(1e-7, 250,10000)
+R = np.logspace(-16,5.75,10000,1,np.exp(1))  # Logarithmic mesh for our integration: [10^-7,...10^2.5]
+#R = np.linspace(1e-7, 250,10000)
 Z=1                      # Charge of the nucleous
-nmax = 5             # Maximum principal state
+nmax = 1            # Maximum principal state
 lmax = 0                 # Maximum angular momentum
 
 def pot(r):

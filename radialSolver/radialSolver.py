@@ -8,7 +8,7 @@ from scipy import\
 import matplotlib.pyplot as plt
 
 
-def _NumerovSolve(g,s,R,start1=0,start2=1e-4):
+def _NumerovSolve(g,s,x,start1=0,start2=1e-4):
     """ Solves differential equation of the form y'' = -g(x)y + s(x)
         for every point in R using numerovs method.
         <Start2> only scales the solution.
@@ -16,27 +16,28 @@ def _NumerovSolve(g,s,R,start1=0,start2=1e-4):
         TODO: Improve array system to numpy.array.
     """
     # Solves backwards so flip R.
-    R0 = R[::-1]
+    x0 = x[::-1]
     y=[start1,start2] # Function value array start from the rear.
 
-    for i in range(1,len(R)-1):
-        xn = R0[i]
-        xnm = R0[i-1]
-        xnp = R0[i+1]
+    for i in range(1,len(x)-1):
+        xn = x0[i]
+        xnm = x0[i-1]
+        xnp = x0[i+1]
 
         h = np.abs(xnp-xn)
+        #h = 0.01
 
         # Numerovs method.
-        x = (  2.*y[i]*(1-((5/12)*(h**2))*g(xn)) - y[i-1]*(1+((h**2)/12)*g(xnm)) + ((h**2)/12)*(s(xnp) + 10*s(xn) + s(xnm))  ) / (1 + ((h**2)/12)*g(xnp))
-        y.append(x)
+        x1 = (2.*y[i]*(1-((5/12)*(h**2))*g(xn)) - y[i-1]*(1+((h**2)/12)*g(xnm)) + ((h**2)/12)*(s(xnp) + 10*s(xn) + s(xnm))) / (1 + ((h**2)/12)*g(xnp))
+        y.append(x1)
 
     # Take the norm of the y-vector; divide with it's maximum.
-    norm = max(y[:int(len(R) * 0.9)])
+    norm = max(y[:int(len(x) * 0.9)])
 
     y = y[::-1] # Flips back.
 
-    u = [x / norm for x in y] # Normalizes.
-    return u
+    y_norm = [z / norm for z in y] # Normalizes.
+    return y_norm
 
 def _SolveSchroedinger(E,R,l,pot):
     """ Integrates Schroedinger equation given a energy E, and angular momentum
@@ -58,13 +59,21 @@ def _SolveSchroedinger(E,R,l,pot):
     _NumerovSolve wants a differential equation of the form y'' = -g(x)y + s(x), so we construct g(x), s(x).
     """
 
-    def g(r):
-        return (2 * (E - pot(r)) - l*(l + 1) / r ** 2)
+    # Functins for linnear R.
+    def g_linear(x):
+        return (2 * (E - pot(x)) - l*(l + 1) / x ** 2)
 
-    def s(r):
+    def s_linear(x):
         return 0
 
-    return _NumerovSolve(g, s, R)
+    # Functions for logaritmic R.
+    def g_log(x):
+        return -(1/4 - np.exp(2*x)*g_linear(np.exp(x)))
+
+    def s_log(x):
+        return 0
+
+    return _NumerovSolve(g_log, s_log, np.log(R))
 
 
 def _Shoot(E, R, l, pot):
@@ -73,7 +82,7 @@ def _Shoot(E, R, l, pot):
         For the state to be bound state, we have the following condition: u(r=0)==0.
     """
 
-    u = _SolveSchroedinger(E, R, l, pot)
+    u = np.multiply((_SolveSchroedinger(E, R, l, pot)),np.sqrt(R))
 
     # Vi vill ha värdet i r=0, därför interpolerar vi sista biten i.o.m att
     # R[0] inte riktigt.
@@ -107,9 +116,9 @@ def FindBoundStates(R,lmax,nmax,pot,MaxSteps=1000,Etol=1e-17):
             print ('Bound state # %2i (l=%2i): E=%12.9f (Pure Coulomb: E_c=%12.9f; ratio=%6.4f)' \
             % (nfound, l, Eb0, E_coul, Eb0 / E_coul))
             nfound+=1
-            #U = _SolveSchroedinger(Eb0, R, l, pot)
-            #plt.semilogx(R, U)
-            #plt.show()
+            U = _SolveSchroedinger(Eb0, R, l, pot)
+            plt.semilogx(R, U)
+            plt.show()
     return Eb
 
 
