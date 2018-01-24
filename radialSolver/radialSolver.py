@@ -21,9 +21,9 @@ def _NumerovSolve(g,s,x,start1=0,start2=1e-4):
     y=[start1,start2] # Function value array start from the rear.
 
     for i in range(1,len(x)-1):
-        xn = x0[i]
-        xnm = x0[i-1]
-        xnp = x0[i+1]
+        xn = x0[i]    # Current x value.
+        xnm = x0[i-1] # Last x value.
+        xnp = x0[i+1] # Next x value
 
         h = np.abs(xnp-xn)  #TODO: can be moved outside loop
         #h = 0.01
@@ -50,7 +50,8 @@ def _SolveSchroedinger(E,R,l,pot):
     value of the function.
     """
 
-    """ After the variable change u(r)/r = R(r) we have a differential equation of the form
+    """ FOR LINNEAR SOLVING
+    After the variable change u(r)/r = R(r) we have a differential equation of the form
 
     If we consider m/ \bar(h)^2 = 1 we get
 
@@ -114,9 +115,9 @@ def FindBoundStates(R,lmax,nmax,pot,MaxSteps=1000,Etol=1e-17):
             print ('Bound state # %2i (l=%2i): E=%12.9f (Pure Coulomb: E_c=%12.9f; ratio=%6.4f)' \
             % (nfound, l, Eb0, E_coul, Eb0 / E_coul))
             nfound+=1
-            U = _SolveSchroedinger(Eb0, R, l, pot)
-            plt.semilogx(R, U)
-            plt.show()
+            #U = _SolveSchroedinger(Eb0, R, l, pot)
+            #plt.semilogx(R, U)
+            #plt.show()
     return Eb
 
 
